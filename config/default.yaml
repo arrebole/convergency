@@ -1,0 +1,18 @@
+---
+kafka:
+  clientId: convergency
+  topic: maxwell
+  groupId: main
+  brokers:
+  - 10.0.6.88:9092
+
+adapters:
+  - host: 10.0.6.88:3307
+    database: upyun
+    table: users
+    endpoint:
+      driver: es6
+      key: id
+      index: maxwell-upyun-users
+      type: maxwell-upyun-users
+      host: 10.0.2.30:9200
