@@ -5,7 +5,7 @@ type Config = {
   adapters: Adapter[];
 }
 
-type Adapter = {
+export type Adapter = {
   host: string
   database: string;
   table: string;

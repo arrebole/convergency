@@ -1,4 +1,4 @@
-import { config } from './configure';
+import { Adapter, config } from './configure';
 import { KafkaConsumerTaskBuilder } from './kafka';
 import { ClientFactory } from './drivers/client-factory';
 import { ConsumerEachMessagePayload } from 'kafkajs';
@@ -6,18 +6,27 @@ import { MaxwellMessage } from './message';
 import { Client } from './drivers/client';
 import { Logger } from './logger';
 
-async function main() {
 
-  const logger = new Logger();
-
-  // 通过 adapters 构建客户端
+// 通过 adapters 构建客户端
+function createAllClients(adapters: Adapter[]) {
   const clients = new Map<string, Client>();
-  for (const adapter of config.adapters) {
+  for (const adapter of adapters) {
     clients.set(
-      `${adapter.database}-${adapter.table}`,
+      makeClientKey(adapter),
       new ClientFactory().create(adapter.endpoint),
     );
   }
+  return clients;
+}
+
+function makeClientKey(params: { database: string, table: string }) {
+  return `${params.database}-${params.table}`;
+}
+
+async function main() {
+
+  const logger = new Logger();
+  const clients = createAllClients(config.adapters);
 
   // 处理 maxwell 的信息
   const messageHandler = async (payload: ConsumerEachMessagePayload) => {
@@ -29,13 +38,13 @@ async function main() {
       );
 
       // 获取客户端
-      const client = clients.get(`${content.database}-${content.table}`);
+      const client = clients.get(makeClientKey(content));
       if (!client) {
-        throw new Error(`客户端不存在 [${content.database}-${content.table}]`);
+        throw new Error(`客户端不存在 [${makeClientKey(content)}]`);
       }
 
       // 通过操作对数据进行同步
-      switch(content.type) {
+      switch (content.type) {
         case 'insert':
           await client.create(content.data);
           break;
@@ -49,15 +58,15 @@ async function main() {
 
       // 打印日志
       logger.log(
-        '[%s] [%s/%s] [%s]', 
-        content.type, 
+        '[%s] [%s/%s] [%s]',
+        content.type,
         content.database,
-        content.table, 
+        content.table,
         content.data,
       )
 
-    } catch (e){
-      logger.error('[error] %o',e.message);
+    } catch (e) {
+      logger.error('[error] %o', e.message);
     }
   }
 
