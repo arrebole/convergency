@@ -46,6 +46,7 @@ async function main() {
       // 通过操作对数据进行同步
       switch (content.type) {
         case 'insert':
+        case 'bootstrap-insert':
           await client.create(content.data);
           break;
         case 'update':
