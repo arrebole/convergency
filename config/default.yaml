@@ -4,15 +4,15 @@ kafka:
   topic: maxwell
   groupId: main
   brokers:
-  - 10.0.6.88:9092
+  - kafka-ufo.service.upyun:9092
 
 adapters:
-  - host: 10.0.6.88:3307
-    database: upyun
-    table: users
+  - host: 192.168.5.30:3306
+    database: robin
+    table: log_import_fails
     endpoint:
       driver: es6
       key: id
-      index: maxwell-upyun-users
-      type: maxwell-upyun-users
-      host: 10.0.2.30:9200
+      index: robin_log_import_fails
+      type: robin_log_import_fails
+      host: es-zico2.service.upyun:9500
